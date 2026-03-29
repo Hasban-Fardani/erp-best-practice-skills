@@ -8,7 +8,6 @@ description: >
   navigation patterns, or discussing core ERP principles. Always trigger for
   questions about enterprise app UX, form design, admin experience, ERP
   architecture decisions, or frontend best practices for internal tools.
-author: Hasban Fardani — PT Maxximum Digital Indonesia
 ---
 
 # ERP Best Practice
@@ -79,3 +78,8 @@ Read only the file relevant to the question — not all at once.
 3. Answer with concrete numbers, ✓/✗ examples, and persona context
 4. For new feature decisions: always check `erp-principles.md` first
 5. When in doubt whether to use a modal or page: read `navigation.md`
+
+
+## Author
+
+Hasban Fardani - Indonesian Software Engineer
