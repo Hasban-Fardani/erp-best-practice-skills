@@ -2,8 +2,7 @@
 
 > A Claude AI skill for building ERP systems that are actually used — not just impressive on demos.
 
-**Author:** Hasban Fardani — PT Maxximum Digital Indonesia  
-**Format:** Claude Skill (`.zip`)  
+**Author:** Hasban Fardani
 **Language:** English  
 **Scope:** UX/UI, form design, data integrity, Indonesian compliance
 
@@ -19,6 +18,16 @@ The skill is built around a core insight: most ERP systems fail not because of m
 
 ## What It Covers
 
+**Foundational**
+
+| Domain | Reference File |
+|---|---|
+| Severity classification (CRITICAL / HIGH / MEDIUM / PREFERENCE) | `references/severity.md` |
+| Tradeoff doctrine and priority hierarchy | `references/tradeoffs.md` |
+| Mode selection (generation / critique / audit / review / analysis) | `references/review-modes.md` |
+
+**UX / UI**
+
 | Domain | Reference File |
 |---|---|
 | Typography, color, contrast, spacing | `references/visual-design.md` |
@@ -27,7 +36,25 @@ The skill is built around a core insight: most ERP systems fail not because of m
 | Modal, drawer, full page — decision rules and anatomy | `references/navigation.md` |
 | Free text vs dropdown, combobox, contextual help | `references/input-control.md` |
 | ERP principles: discovery, permissions, filter persistence, do/don't | `references/erp-principles.md` |
+
+**Operational engineering**
+
+| Domain | Reference File |
+|---|---|
 | Money as integer, idempotency, transactions, audit trail, double-entry | `references/money-and-data-integrity.md` |
+| Race conditions, idempotency, locking, webhook retries, numbering | `references/concurrency.md` |
+| Audit lineage, correlation IDs, replayability, reconciliation | `references/observability.md` |
+| Emergency edits, retroactive correction, approval reversal, session expiry | `references/exceptions-and-recovery.md` |
+| Pagination, exports, slow queries, low-end device reality | `references/performance.md` |
+| Autosave, retry, unstable network, true offline patterns | `references/offline-and-network.md` |
+| Operator psychology, panic clicks, confirmation fatigue, trust | `references/human-factors.md` |
+
+**Context**
+
+| Domain | Reference File |
+|---|---|
+| Warehouse scanning, field sales, mobile approvals | `references/mobile-erp.md` |
+| Spreadsheet/WhatsApp replacement, gradual adoption | `references/legacy-and-migration.md` |
 | IDR format, timezone, NIK/NPWP, BPJS, UU PDP compliance | `references/indonesia-compliance.md` |
 
 ---
@@ -78,34 +105,62 @@ The skill grounds all recommendations in four realistic Indonesian ERP user arch
 
 ```
 erp-best-practice/
-├── SKILL.md                              # Entry point — personas, routing table, usage pattern
+├── SKILL.md                              # Entry point — personas, routing, usage pattern
 ├── README.md                             # This file
 └── references/
-    ├── visual-design.md                  # Typography & color (~559 words)
-    ├── table-design.md                   # Table patterns (~551 words)
-    ├── forms.md                          # Form design, multi-step, validation (~1088 words)
-    ├── navigation.md                     # Modal, drawer, full page (~612 words)
-    ├── input-control.md                  # Input types & contextual help (~782 words)
-    ├── erp-principles.md                 # Core do/don't principles (~717 words)
-    ├── money-and-data-integrity.md       # Financial data rules (~779 words)
-    └── indonesia-compliance.md           # Indonesia-specific compliance (~848 words)
+    │  # Foundational
+    ├── severity.md                       # CRITICAL / HIGH / MEDIUM / PREFERENCE classification
+    ├── tradeoffs.md                      # Priority hierarchy, conflict resolution
+    ├── review-modes.md                   # Generation / critique / audit / review / analysis
+    │
+    │  # UX / UI
+    ├── visual-design.md                  # Typography & color
+    ├── table-design.md                   # Table patterns
+    ├── forms.md                          # Form design, multi-step, validation
+    ├── navigation.md                     # Modal, drawer, full page
+    ├── input-control.md                  # Input types & contextual help
+    ├── erp-principles.md                 # Core do/don't principles
+    │
+    │  # Operational engineering
+    ├── money-and-data-integrity.md       # Financial integrity rules
+    ├── concurrency.md                    # Race conditions, idempotency, locking
+    ├── observability.md                  # Audit, correlation, replay, reconciliation
+    ├── exceptions-and-recovery.md        # Emergency edits, reversals, session loss
+    ├── performance.md                    # Pagination, exports, slow queries
+    ├── offline-and-network.md            # Autosave, retry, unstable network
+    ├── human-factors.md                  # Operator psychology and trust
+    │
+    │  # Context
+    ├── mobile-erp.md                     # Mobile workflows that matter
+    ├── legacy-and-migration.md           # Spreadsheet/WhatsApp replacement
+    └── indonesia-compliance.md           # Indonesia-specific compliance
 ```
 
-Each reference file is self-contained and focused on a single domain. Claude reads only the files relevant to the question — not all at once.
+Each reference file is self-contained and focused on a single domain. Claude reads only the files relevant to the question — not all at once. The mode and escalation rules in `review-modes.md` decide which additional files to load.
 
 ---
 
 ## Installation
 
-### In Claude.ai (via Settings → Skills)
-1. Download `erp-best-practice.zip`
-2. Go to **Settings → Skills → Install from file**
-3. Upload the `.zip` file
-4. The skill will appear in your available skills list
+### Via Claude Code CLI (Recommended)
 
-### Manual
-Extract the `.zip` and place the `erp-best-practice/` folder in your skills directory.
-Ensure `SKILL.md` is at the root of the folder with valid YAML frontmatter.
+```bash
+claude skills install https://github.com/Hasban-Fardani/erp-best-practice-skills.git
+```
+
+### Via Git (Manual Clone)
+
+```bash
+# Clone the repository into your Claude skills directory
+git clone https://github.com/Hasban-Fardani/erp-best-practice-skills.git ~/.claude/skills/erp-best-practice
+```
+
+### Manual Installation
+
+1. Clone or download this repository
+2. Place the `erp-best-practice/` folder in your Claude skills directory (`~/.claude/skills/`)
+3. Ensure `SKILL.md` is at the root with valid YAML frontmatter
+4. Restart Claude Code or reload skills
 
 ---
 
@@ -131,6 +186,11 @@ Claude does not read all files at once. The skill is designed for progressive di
 - DevOps, CI/CD, and deployment
 - Multi-tenancy architecture
 - Specific library or package comparisons
+- Generic SaaS UX trends or visual design fashion
+
+The skill is opinionated about *what* to build and *how to reason* about ERP
+tradeoffs. It is deliberately silent on framework wars and architectural
+fashion that don't change operational outcomes.
 
 ---
 
