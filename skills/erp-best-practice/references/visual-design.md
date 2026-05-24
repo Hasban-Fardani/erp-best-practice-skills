@@ -51,6 +51,9 @@ Max **65–70 characters** per line for 40+ users. Anything wider is tiring to r
 
 ## Color Contrast (WCAG)
 
+Severity: **HIGH.** Pak Hendra and Sri are 44+ — under-contrast text is
+unreadable, not just suboptimal.
+
 | Level | Ratio | Applies to |
 |---|---|---|
 | WCAG AA minimum | 4.5:1 | Normal text (< 18pt) |
@@ -71,7 +74,9 @@ Additional rules for older users:
 
 ## Status Badges
 
-Always use all three: **color + icon + text label**.
+Severity: **HIGH.** Always use all three: **color + icon + text label**.
+Color alone fails for color-blind operators (8% of male population) and on cheap
+monitors with poor color rendition.
 
 ```
 Active    → green    + ✓  + "Active"

@@ -2,8 +2,10 @@
 
 ## Free Text vs Controlled Input
 
-If a field that feeds into reports accepts free text, reports cannot be aggregated reliably.
-This is not a developer failure — it is a consequence of the design decision.
+Severity: **HIGH.** If a field that feeds into reports accepts free text, reports
+cannot be aggregated reliably. This is not a developer failure — it is a
+consequence of the design decision. The decay is silent: reports look fine in
+month 1, become useless by month 12.
 
 Real example: Sri types "Electrical Installation", Budi types "Elec. Install",
 Ani types "installation electrical". Pak Hendra requests a report by job type →
@@ -76,22 +78,23 @@ Help hierarchy — use the lightest option that solves the problem:
 Contract Date  [__________]
                Format: DD/MM/YYYY. Cannot be earlier than today.
 ```
-Filament: `->helperText('Format: DD/MM/YYYY')`
-HTML: `<p class="text-sm text-gray-500 mt-1">Format: DD/MM/YYYY</p>`
-React/Vue: `<small>` or helper component below the input
+Implementation: a small `<p>` / helper element directly under the input.
+Most UI libraries call this `helperText`, `hint`, `description`, or `helpText`
+(Material UI, Chakra, Ant Design, shadcn/ui, Filament, Bootstrap).
 
 **2. Tooltip `?` icon** — question mark beside the label, shows on hover/click, max 2 lines:
 ```
 Tax Rate [?]  → "Used to calculate the final invoice amount. Default from Settings."
 ```
-Filament: `->hint('...')->hintIcon('heroicon-o-question-mark-circle')`
-HTML: `[?]` button with a CSS tooltip or lightweight popover
+Implementation: an icon button next to the label with a popover/tooltip on
+hover and click. Must also work on touch (no hover) — open on tap, close on
+outside click.
 
 **3. Inline validation message** — appears on blur (field loses focus), not while typing:
 ```
 [red border] "Invalid format. Example: 021-5551234"
 ```
-See `forms.md` for the multi-field error banner pattern (needed for long scrolled forms).
+See [[forms]] for the multi-field error banner pattern (needed for long scrolled forms).
 
 **4. Walkthrough / guided tour** — a sequence of positioned tooltips step by step.
 Use only for first-time login and major new feature rollouts.

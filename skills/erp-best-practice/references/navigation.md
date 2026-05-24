@@ -109,12 +109,22 @@ On smaller screens, collapse the detail panel to full-screen.
 
 ## Toast Notifications
 
-| Type | Dismiss behavior |
-|---|---|
-| Success | Auto-dismiss after 3–4 seconds |
-| Info | Auto-dismiss after 4–5 seconds |
-| Warning | Manual dismiss only |
-| Error | **Manual dismiss only** |
+| Type | Dismiss behavior | Severity if violated |
+|---|---|---|
+| Success | Auto-dismiss after 3–4 seconds | MEDIUM |
+| Info | Auto-dismiss after 4–5 seconds | PREFERENCE |
+| Warning | Manual dismiss only | HIGH |
+| Error | **Manual dismiss only** | HIGH |
 
 ✗ Error toast auto-dismisses — Sri misses it and doesn't know her action failed
 ✓ Error toast stays until she reads and dismisses it
+
+For trust-building microcopy and the full operator-psychology model:
+[[human-factors]] § Trust-Building Microcopy.
+
+## Cross-References
+
+- Confirmation modal anatomy for destructive actions: [[exceptions-and-recovery]] § Accidental Submission
+- Confirmation fatigue (don't confirm everything): [[human-factors]]
+- Modal/drawer behavior under network failure: [[offline-and-network]]
+- Mobile alternatives (bottom sheet, full-screen overlay): [[mobile-erp]]

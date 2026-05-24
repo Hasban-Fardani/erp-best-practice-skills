@@ -31,9 +31,22 @@ all rows must show two decimal places. Mixed precision looks like data errors.
 
 ## Row Style & Spacing
 
-- Horizontal lines only → cleanest, works for all dataset sizes
-- Full grid only for extremely dense spreadsheet-like tables
-- No zebra striping — use hover highlight instead
+**Default: horizontal lines only.** Severity: PREFERENCE. Cleanest pattern,
+works for all dataset sizes, doesn't compete visually with the data.
+
+**Use full grid when:**
+- Spreadsheet-like dense data where column boundaries matter for scanning
+  (financial statements, payroll line items, journal entries)
+- Many narrow numeric columns where visual containment helps
+
+**Use zebra striping when:**
+- Very wide tables (15+ columns) where horizontal eye-tracking breaks down
+- Mixed-content rows (text + numbers + dates + actions) where row identity helps
+- The audience has explicitly requested it (Pak Hendra was raised on Excel)
+
+In any case: hover highlight is mandatory. Zebra without hover is worse than
+lines without zebra. Zebra colors must be subtle (≤ 5% luminance difference)
+or they overwhelm the data.
 
 | Property | Value |
 |---|---|
@@ -63,7 +76,9 @@ For long text: truncate with a hover tooltip showing the full value.
 - Fixed first column when table scrolls horizontally — never lose the row identifier
 - Fixed last column when table is wide and has totals or actions
 
-In Filament: `->stickyHeader()` on the table, `->frozen()` on a column.
+Implementation: `position: sticky` for HTML tables, or built-in
+"stickyHeader" / "frozen column" options on most table components (AG Grid,
+TanStack Table, MUI DataGrid, Ant Design Table, Filament tables, etc.).
 
 ## Row Actions
 
@@ -86,9 +101,26 @@ Never leave a blank table — Sri will assume the system is broken.
 
 ## Pagination
 
-Always use explicit pagination with page numbers — never infinite scroll.
-Pak Hendra has no sense of position in the data with infinite scroll.
+**Default for transactional lists: explicit pagination with page numbers.**
+Severity: HIGH. Pak Hendra has no sense of position in the data with infinite
+scroll. He cannot say "I'm on page 4" or "let me go back to page 2."
 
 ✓ `< 1 2 3 ... 12 >` with per-page selector (25 / 50 / 100)
 
-Always show total count: `Showing 1–25 of 847 records`.
+Always show total count: `Showing 1–25 of 847 records`. For huge tables where
+exact count is expensive: `Showing 1–25 of many` is acceptable —
+see [[performance]] § Query Patterns to Avoid.
+
+**Infinite scroll is acceptable for:**
+- Activity feeds and audit timelines (chronological browsing, no position needed)
+- Notification lists (transient, dismissable)
+- Comment threads on a single record
+
+**Never use infinite scroll for:**
+- Invoice / quotation / contract lists (operator needs position, count, filter persistence)
+- Approval queues (each record needs deliberate handling, not casual scrolling)
+- Anything Sri filters and returns to — back navigation loses position
+- Any list operators reference by "the third one from the top of page 4"
+
+For deep pagination at scale (10k+ rows), use cursor pagination not offset.
+See [[performance]] § Pagination Doctrine.

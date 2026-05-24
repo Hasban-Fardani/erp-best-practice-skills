@@ -32,16 +32,23 @@ Dimas (HR) needs to read employee contracts but must not edit salary data.
 Rina (marketing) needs to create quotations but not approve them.
 Don't lump these together by department.
 
-**Audit trail from day one.**
+**Audit trail from day one.** Severity: CRITICAL for financial mutations, HIGH for the rest.
 Log every meaningful action: create, update, approve, reject, delete.
 Store: who, when, what changed (before and after values — not just the new value).
-Retrofitting audit trails later is expensive and unreliable.
-In Laravel: `spatie/laravel-activitylog` — install before building any CRUD.
-For implementation pattern with before/after state and idempotency: see `money-and-data-integrity.md`.
+Retrofitting audit trails later is expensive and unreliable — the gap period
+can never be reconstructed.
+
+Pick a library that writes inside your DB transaction (so a rollback discards
+the audit too). See [[observability]] § Audit Trail for library choices by stack.
+For implementation pattern with before/after state and idempotency: see
+[[money-and-data-integrity]].
 
 **Validate at the database level.**
 Foreign keys, unique constraints, and check constraints must be in migrations.
-Don't rely only on Laravel validation rules — someone will bypass the form via API or Tinker.
+Don't rely only on application-layer validation — someone will bypass the form
+via the API, the admin shell, a background job, or a hand-written SQL query.
+Application validation is for friendly error messages; DB constraints are for
+data integrity.
 
 **Soft release: one department first.**
 Deploy to Sri's team. Watch where she gets stuck. Fix it. Then expand.
@@ -61,9 +68,19 @@ The person who uses the system most should be heard most in UX decisions.
 Sri sets filters (date range, status, department) → opens a record → goes back → filters are gone.
 This is the most common unspoken frustration in enterprise apps.
 
-In Filament: `->persistFiltersInSession()`
-In Laravel + Livewire: persist filter state to URL query params or session
-In React/Vue SPA: store filters in route state or global store, restore on mount
+Implementation options (any framework):
+- **URL query params** (preferred): filter state lives in the URL, survives
+  reloads, bookmarkable, back/forward "just works." E.g. `/invoices?status=draft&date_from=2026-03-01`.
+- **Session/server-side state**: per-user filter memory across pages, survives
+  reloads. Use when filters are too complex for URLs or are sensitive.
+- **Local/session storage**: client-only filter memory. Survives reloads, not
+  shareable, can leak across users on shared machines.
+
+Most table libraries and admin frameworks expose a one-line config for this
+(Filament `->persistFiltersInSession()`, TanStack Table state in URL,
+Django admin `list_filter` with `?` URL, Rails Ransack with permanent params).
+Use the built-in option when available — hand-rolled often misses edge cases
+(pagination interaction, multi-tab consistency).
 
 **Don't hardcode business logic that changes.**
 Tax rates, discounts, payment terms, approval thresholds — all configurable.
@@ -79,16 +96,21 @@ Not for the client — for yourself 6 months later and for any new developer.
 
 ## Loading & Feedback States
 
-Every server round-trip must have visible feedback.
+Every server round-trip must have visible feedback. Severity: HIGH (silent UI
+causes panic-clicking and duplicate submissions).
 
 | State | UI behavior |
 |---|---|
 | Saving / submitting | Button disabled + spinner immediately |
 | Long-running task (PDF, export) | Progress indicator or "Processing…" state |
-| Success / error feedback | See `navigation.md` → Toast Notifications |
+| Success / error feedback | See [[navigation]] → Toast Notifications |
 
 ✗ Button does nothing for 3 seconds — Sri clicks it again (double submit)
 ✓ Button immediately goes disabled and shows a spinner
+
+Visual disable is not enough. Pair with server-side idempotency on financial
+operations — see [[concurrency]]. For full operator-psychology coverage of
+panic clicking and confirmation fatigue: [[human-factors]].
 
 ## Filter Persistence Checklist
 
