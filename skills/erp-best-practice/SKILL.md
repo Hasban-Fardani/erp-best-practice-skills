@@ -159,6 +159,43 @@ in `references/review-modes.md` determine when to load additional files.
 6. **Answer with concrete numbers, ✓/✗ examples, and persona impact.** Generic
    advice is the failure mode this skill exists to prevent.
 
+## Ownership Map (Single Source of Truth)
+
+Cross-cutting concepts appear in multiple files for context. When in doubt,
+read the **canonical owner** first; other files reference it but should not be
+treated as authoritative for the same concept.
+
+| Concept | Canonical Owner | Other files (context only) |
+|---|---|---|
+| Idempotency pattern (pseudocode, key lifetime, key source) | `concurrency.md` § Idempotency | `money-and-data-integrity.md`, `exceptions-and-recovery.md`, `forms.md` |
+| Audit event structure (before/after, ORM diffs, libraries) | `observability.md` § Mutation History | `money-and-data-integrity.md` (financial-specific rules only), `erp-principles.md` (principle only) |
+| Money-as-integer storage and rate snapshots | `money-and-data-integrity.md` | `forms.md` (UI display only), `indonesia-compliance.md` (IDR formatting) |
+| Database transactions (syntax, anti-patterns, stack notes) | `money-and-data-integrity.md` § Database Transactions | `concurrency.md` (defers) |
+| Optimistic / pessimistic locking | `concurrency.md` | `exceptions-and-recovery.md`, `offline-and-network.md` (cite only) |
+| Pagination — server strategy (cursor/offset, indexing) | `performance.md` § Pagination Doctrine | `table-design.md` (defers) |
+| Pagination — UI (page numbers, totals, infinite-scroll exceptions) | `table-design.md` § Pagination | `performance.md` (defers) |
+| Loading state — principle (every round-trip needs feedback) | `erp-principles.md` § Loading & Feedback States | (cited from many) |
+| Loading state — duration thresholds (which indicator when) | `performance.md` § Loading State Thresholds | `erp-principles.md` (defers) |
+| Operator psychology (panic, confirmation fatigue, fear) — the WHY | `human-factors.md` | (cited from many) |
+| Recovery/defense patterns (undo, soft delete, accidental submit) — the HOW | `exceptions-and-recovery.md` | `human-factors.md` (defers for implementation) |
+| Modal anatomy (title, body, buttons, ESC/Enter, sizing) | `navigation.md` § Modal | `exceptions-and-recovery.md`, `human-factors.md` (defer) |
+| Confirmation philosophy (when to require, friction by severity) | `human-factors.md` § Confirmation Fatigue | `exceptions-and-recovery.md` (defers) |
+| Filter persistence (URL/session, checklist) | `erp-principles.md` § Don't reset filters | `table-design.md` (cites) |
+| Empty state — UI presentation | `table-design.md` § Empty State | `human-factors.md` (microcopy only) |
+| Empty state — microcopy | `human-factors.md` § Trust-Building Microcopy | `table-design.md` (cites) |
+| Error message microcopy | `human-factors.md` § Error Messages That Help | `erp-principles.md` (principle only) |
+| Unsaved-changes warning | `forms.md` § Unsaved Changes Warning | `exceptions-and-recovery.md` (cites), `navigation.md` (cites) |
+| Autosave to draft | `offline-and-network.md` § Autosave Draft | `forms.md` (cites), `exceptions-and-recovery.md` (cites) |
+| Retry logic — server (webhook idempotency) | `concurrency.md` § Payment Callback Retries | `observability.md` (cites) |
+| Retry logic — client (exponential backoff) | `offline-and-network.md` | `concurrency.md` (cites) |
+| Session expiry | `exceptions-and-recovery.md` § Session Expiration | `offline-and-network.md` (cites) |
+| PII handling (NIK, NPWP, BPJS, redaction) | `indonesia-compliance.md` | `observability.md` (never-log list cites) |
+| Severity classification (CRITICAL/HIGH/MEDIUM/PREFERENCE) | `severity.md` | (cited from all) |
+| Priority hierarchy (financial > legal > integrity > ...) | `tradeoffs.md` | (cited from all) |
+
+If two files appear to disagree, the canonical owner wins. Open an issue on
+the non-canonical file — it has drifted.
+
 ## Quick Severity Reference
 
 | Class | Examples |

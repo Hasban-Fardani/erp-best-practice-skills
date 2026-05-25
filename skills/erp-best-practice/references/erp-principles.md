@@ -1,5 +1,13 @@
 # ERP Principles: Do & Don't
 
+> **Scope.** Owns: top-level do/don't statements — discovery before code,
+> design-for-least-technical-user, role-based access intent, audit-trail
+> principle, DB-level validation, soft release, anti-feature-creep, filter
+> persistence, loading-feedback principle. This file is the *principle*
+> layer; implementation belongs to the linked specialist files. **See also:**
+> linked files inline (each principle ends with the file that owns its
+> implementation).
+
 ## The Core Test
 
 ERP that gets used: Sri completes her daily tasks without contacting the developer.
@@ -39,9 +47,10 @@ Retrofitting audit trails later is expensive and unreliable — the gap period
 can never be reconstructed.
 
 Pick a library that writes inside your DB transaction (so a rollback discards
-the audit too). See [[observability]] § Audit Trail for library choices by stack.
-For implementation pattern with before/after state and idempotency: see
-[[money-and-data-integrity]].
+the audit too). Full audit-event structure, ORM diff helpers, library options,
+and operator-facing history panel: [[observability]] § Mutation History.
+Financial-specific audit rules (append-only at DB level, money never logged):
+[[money-and-data-integrity]] § Audit Trail.
 
 **Validate at the database level.**
 Foreign keys, unique constraints, and check constraints must be in migrations.
@@ -66,7 +75,7 @@ The person who uses the system most should be heard most in UX decisions.
 
 **Don't reset filters on back navigation.**
 Sri sets filters (date range, status, department) → opens a record → goes back → filters are gone.
-This is the most common unspoken frustration in enterprise apps.
+This is the most common unspoken frustration in enterprise apps. Severity: HIGH.
 
 Implementation options (any framework):
 - **URL query params** (preferred): filter state lives in the URL, survives
@@ -82,9 +91,17 @@ Django admin `list_filter` with `?` URL, Rails Ransack with permanent params).
 Use the built-in option when available — hand-rolled often misses edge cases
 (pagination interaction, multi-tab consistency).
 
+Release checklist for any list or table page:
+- [ ] Active filters are visible as chips or filled filter fields
+- [ ] Filters survive navigating to a record and pressing Back
+- [ ] Filter state survives a page refresh (URL params or session)
+- [ ] "Clear all filters" button is visible when filters are active
+- [ ] Empty state message reflects the currently active filter context
+
 **Don't hardcode business logic that changes.**
 Tax rates, discounts, payment terms, approval thresholds — all configurable.
-See `forms.md` for the full tax/dynamic calculation pattern.
+See [[forms]] § Tax & Dynamic Calculation Fields for the UI pattern and
+[[money-and-data-integrity]] § Rates Must Come From the Database for storage.
 
 **Don't do big-bang migration.**
 Shutting down all manual processes on day one leaves no fallback.
@@ -109,14 +126,7 @@ causes panic-clicking and duplicate submissions).
 ✓ Button immediately goes disabled and shows a spinner
 
 Visual disable is not enough. Pair with server-side idempotency on financial
-operations — see [[concurrency]]. For full operator-psychology coverage of
-panic clicking and confirmation fatigue: [[human-factors]].
-
-## Filter Persistence Checklist
-
-Before releasing any list or table page:
-- [ ] Active filters are visible as chips or filled filter fields
-- [ ] Filters survive navigating to a record and pressing Back
-- [ ] Filter state survives a page refresh (URL params or session)
-- [ ] "Clear all filters" button is visible when filters are active
-- [ ] Empty state message reflects the currently active filter context
+operations — see [[concurrency]]. For which indicator to use at which
+duration (skeleton vs spinner vs progress vs background-job handoff):
+[[performance]] § Loading State Thresholds. For the operator-psychology
+view (why waiting feels unsafe): [[human-factors]] § Panic Clicking.

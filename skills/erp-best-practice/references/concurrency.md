@@ -1,5 +1,13 @@
 # Concurrency Doctrine
 
+> **Scope.** Owns: idempotency pattern, optimistic and pessimistic locking,
+> race-condition primitives, document-number assignment, webhook deduplication,
+> distributed/named locks, retry-safe operation design.
+> **See also:** [[money-and-data-integrity]] for which financial operations
+> require these primitives · [[observability]] for correlation IDs and audit
+> of concurrent operations · [[offline-and-network]] for client-side retry
+> semantics · [[exceptions-and-recovery]] for accidental-submission UX.
+
 ERP systems handle simultaneous operations from real humans (Sri and Rina hit
 Save on the same record at the same moment) and from systems (a payment gateway
 retries a webhook three times in 200ms because the first response timed out).

@@ -1,5 +1,13 @@
 # Table Design
 
+> **Scope.** Owns: visual presentation of tables — column alignment, tabular
+> numerals, row style and spacing, multi-value cells, fixed header/columns,
+> row actions on hover, empty states, pagination UI (page numbers, total
+> count, infinite-scroll exceptions). **See also:** [[performance]] §
+> Pagination Doctrine for server-side cursor/offset strategy and indexing
+> · [[visual-design]] for color and typography tokens · [[navigation]] for
+> row-click target rules.
+
 ## Column Alignment
 
 Column header always matches its data alignment — mismatched alignment creates visual noise.
@@ -99,7 +107,11 @@ Never leave a blank table — Sri will assume the system is broken.
 ✓ "No results match your search. Try adjusting the date range."
 ✗ Table with column headers and no rows, no message
 
-## Pagination
+## Pagination (Visual Presentation)
+
+This section owns the **UX presentation** of pagination. Server-side strategy
+(cursor vs offset, page size by volume, indexing, count caching) belongs to
+[[performance]] § Pagination Doctrine.
 
 **Default for transactional lists: explicit pagination with page numbers.**
 Severity: HIGH. Pak Hendra has no sense of position in the data with infinite
@@ -108,8 +120,8 @@ scroll. He cannot say "I'm on page 4" or "let me go back to page 2."
 ✓ `< 1 2 3 ... 12 >` with per-page selector (25 / 50 / 100)
 
 Always show total count: `Showing 1–25 of 847 records`. For huge tables where
-exact count is expensive: `Showing 1–25 of many` is acceptable —
-see [[performance]] § Query Patterns to Avoid.
+exact count is expensive, fall back to `Showing 1–25 of many` — the count
+caching pattern is in [[performance]] § Query Patterns to Avoid.
 
 **Infinite scroll is acceptable for:**
 - Activity feeds and audit timelines (chronological browsing, no position needed)
@@ -121,6 +133,3 @@ see [[performance]] § Query Patterns to Avoid.
 - Approval queues (each record needs deliberate handling, not casual scrolling)
 - Anything Sri filters and returns to — back navigation loses position
 - Any list operators reference by "the third one from the top of page 4"
-
-For deep pagination at scale (10k+ rows), use cursor pagination not offset.
-See [[performance]] § Pagination Doctrine.

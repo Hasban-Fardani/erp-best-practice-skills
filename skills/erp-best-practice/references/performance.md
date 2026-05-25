@@ -1,5 +1,14 @@
 # Performance Reality
 
+> **Scope.** Owns: data-volume budget, server-side pagination strategy
+> (cursor vs offset), indexing discipline, query patterns to avoid,
+> loading-state duration thresholds, debounce timing, background exports,
+> reporting pre-aggregation, low-end-device constraints, performance metrics.
+> **See also:** [[table-design]] § Pagination for the visual UI of pagination
+> · [[erp-principles]] § Loading & Feedback States for the principle that
+> every round-trip needs feedback · [[concurrency]] for lock-contention
+> patterns · [[offline-and-network]] for network-induced latency.
+
 Most ERP performance problems are not solved by faster servers. They are caused
 by treating data sets as small in the design phase and discovering at year two
 that "All Invoices" has 240,000 rows, the export button times out, and the
@@ -26,7 +35,12 @@ upper bound. The cost of designing for 100k rows from day one is small; the
 cost of retrofitting pagination, indexing, and async exports under production
 load is enormous.
 
-## Pagination Doctrine
+## Pagination Doctrine (Server Strategy)
+
+This section owns the **server-side strategy**: which query pattern, what page
+size, when to switch from offset to cursor. Visual presentation (page-number
+control, total-count display, when infinite scroll is and isn't acceptable)
+belongs to [[table-design]] § Pagination.
 
 **Default: server-side pagination on every list.**
 
@@ -42,13 +56,6 @@ load is enormous.
 
 ✅ GOOD: `SELECT * FROM invoices WHERE created_at < ? ORDER BY created_at DESC LIMIT 25`
    — cursor scans from the cursor position, returns 25.
-
-**Never use infinite scroll** for transactional lists (see [[table-design]] for why).
-
-**Exception:** activity feeds and timelines (low-stakes browsing) can use
-infinite scroll. Transactional lists where the operator needs to know "how
-many invoices have I dealt with today" must show explicit page numbers and
-total count.
 
 ## Indexing Discipline
 
@@ -96,9 +103,12 @@ not anticipated ones. Premature indexing wastes write performance and disk.
    Fix: extract frequently-queried JSON fields into real columns, or add a
    GIN/expression index.
 
-## Loading States
+## Loading State Thresholds (by Duration)
 
-Every server round-trip > 200ms must show feedback within 100ms.
+The *requirement* that every server round-trip needs visible feedback lives in
+[[erp-principles]] § Loading & Feedback States. This section owns the
+**duration-to-feedback-type** mapping — what kind of indicator to use depending
+on how long the operation takes.
 
 | Duration | Feedback |
 |---|---|

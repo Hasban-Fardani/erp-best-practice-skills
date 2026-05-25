@@ -1,5 +1,14 @@
 # Observability & Traceability
 
+> **Scope.** Owns: audit-event structure with before/after state, ORM diff
+> helpers, off-the-shelf audit libraries by stack, correlation IDs, document
+> lineage, operator-facing history panels, replayability, financial
+> reconciliation visibility, log vs audit distinction, never-log PII list.
+> **See also:** [[money-and-data-integrity]] for financial-specific audit
+> rules (append-only at DB level, transaction co-commit) · [[concurrency]]
+> for idempotency-key generation · [[indonesia-compliance]] for PII redaction
+> requirements.
+
 When finance asks "why is the March payroll Rp 4.500.000 short?", you need to
 reconstruct the state of every input, every rate, every rounding decision, and
 every operator action across multiple subsystems. If you cannot do this in under
@@ -90,6 +99,20 @@ audit_event.insert({
   manually. Or use `prisma-extension-audit`.
 - **EF Core:** `ChangeTracker.Entries()` exposes `OriginalValues` and `CurrentValues`.
 - **Eloquent:** `$model->getOriginal()`, `$model->getDirty()`, `$model->getChanges()`.
+
+**Off-the-shelf audit libraries by stack** (use one before writing your own):
+- **Node / TypeScript:** Prisma + a manual `audit_log` table; `objection-db-errors`.
+- **Python (Django):** `django-simple-history`, `django-auditlog`.
+- **Python (SQLAlchemy):** `sqlalchemy-continuum`.
+- **Ruby on Rails:** `paper_trail`, `audited`.
+- **Java (Spring):** `Spring Data Envers` (Hibernate Envers).
+- **C# (.NET):** `Audit.NET`, EF Core change tracker.
+- **Go:** typically hand-rolled — keep the audit insert inside the same `Tx`.
+- **PHP (Laravel):** `spatie/laravel-activitylog`, `owen-it/laravel-auditing`.
+
+**Critical for financial code:** verify the library writes inside your
+transaction. Many default to async / out-of-transaction writes, which
+silently lose audit records on transaction rollback.
 
 Rules:
 - The audit table is **append-only**. Application role has `INSERT` only —

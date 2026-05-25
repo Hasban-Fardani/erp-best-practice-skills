@@ -1,5 +1,13 @@
 # Navigation Patterns: Modal, Drawer, Full Page
 
+> **Scope.** Owns: container decision tree (modal vs drawer vs full page vs
+> inline), modal anatomy and sizing, drawer rules, full-page post-create
+> landing, primary-detail layout, toast notification timing by severity.
+> **See also:** [[human-factors]] § Confirmation Fatigue for *when* to require
+> confirmation · [[exceptions-and-recovery]] § Accidental Submission for
+> destructive-action defenses · [[forms]] for the form content rendered
+> inside these containers · [[mobile-erp]] for bottom-sheet alternatives.
+
 ## Decision Tree
 
 ```
@@ -29,7 +37,11 @@ Do not use for:
 - Feature announcements or onboarding
 - Auto-triggered modals without a user action
 
-Anatomy of a correct modal:
+**Canonical anatomy of a confirmation modal** (this file owns the UI-component
+spec; *when* to require a confirmation lives in [[human-factors]] § Confirmation
+Fatigue, *what defenses* a destructive action needs lives in
+[[exceptions-and-recovery]] § Accidental Submission):
+
 ```
 ┌──────────────────────────────────────────────┐
 │  Delete Quotation #PEN-2024-001?          [X] │
@@ -47,6 +59,8 @@ Anatomy of a correct modal:
 - Always a secondary escape: Cancel button + X button
 - ESC key closes the modal
 - Clicking the backdrop closes only if there are no unsaved changes
+- Do not auto-action on Enter — typed confirmation modals must never submit on
+  the operator's reflex Enter press
 
 Modal sizing:
 

@@ -1,5 +1,16 @@
 # Exceptions & Recovery
 
+> **Scope.** Owns the **HOW**: recovery hierarchy (soft delete → undo →
+> admin restore → audit → typed confirm), retroactive-correction pattern
+> (reverse-and-reissue), approval reversal, accidental-submission defenses,
+> duplicate-request handling, browser-refresh draft recovery, session
+> expiration handling, partial workflow checkpointing, emergency-edit
+> doctrine. The **WHY operators behave this way** belongs to [[human-factors]].
+> **See also:** [[concurrency]] § Idempotency for the server-side de-dup
+> mechanism · [[navigation]] for modal anatomy · [[forms]] for unsaved-changes
+> warning · [[offline-and-network]] for autosave-to-draft mechanics ·
+> [[observability]] for the audit fields these recovery paths must write.
+
 ERP systems do not run on happy paths. They run on operators correcting yesterday's
 mistakes, undoing accidental clicks, recovering from network drops, and reconstructing
 what was lost when a browser tab died mid-form.

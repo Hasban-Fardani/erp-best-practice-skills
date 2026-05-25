@@ -1,5 +1,15 @@
 # Human Failure Psychology
 
+> **Scope.** Owns the **WHY**: operator state model, why panic clicking
+> happens, confirmation fatigue mechanics, distrust of destructive actions,
+> fear of data loss, post-save uncertainty, repetitive-task exhaustion,
+> confirmation hierarchy by reversibility, trust-building microcopy. This
+> file is psychology, not pattern. **The HOW (concrete defenses, modal
+> anatomy, recovery patterns)** lives in: [[exceptions-and-recovery]] for
+> accidental submission, undo, soft delete, recovery hierarchy · [[forms]]
+> for submit-button behavior and unsaved-changes warning · [[navigation]]
+> for modal anatomy · [[concurrency]] for server-side idempotency.
+
 ERP operators are not the user from a usability lab. They are stressed,
 multitasking, repetitive-task workers with personal stakes in the outcome
 (Sri gets blamed if a customer's invoice is wrong; Pak Hendra approves things
@@ -23,31 +33,35 @@ the worst case, not assume the best.
 
 ## Panic Clicking
 
+This is the operator-psychology view: *why* operators click multiple times and
+what makes that worse. The full defensive pattern (button disable timing,
+idempotency wiring, accidental-submission resilience) is in
+[[exceptions-and-recovery]] § Accidental Submission.
+
 Symptom: button click feels unresponsive → user clicks again, harder, three times.
 
-Causes:
-- Latency between click and visible feedback > 200ms
-- Spinner appears in a location the user is not looking at
-- Modal opens behind another window
-- Action succeeded but no confirmation message
+Causes that compound the panic:
+- Latency between click and visible feedback > 200ms (Sri assumes nothing happened)
+- Spinner appears in a location the user is not looking at (top-right while
+  her eye is on the button)
+- Modal opens behind another window (action did fire, but invisibly)
+- Action succeeded but no confirmation message (Pak Hendra checks for the toast
+  — if there is none, he tries again)
 
-Defenses:
-
-1. **Instant visual feedback on click.** Button disables and shows a spinner the
-   instant it's pressed — not after the server responds. See [[forms]] § Submit Button.
-2. **Idempotency on submit handlers.** Even if Sri clicks 5 times, only one
-   record gets created. See [[concurrency]].
-3. **Optimistic UI for known-safe actions.** Status toggle, mark-as-read,
-   reorder — apply the change locally first, reconcile with server.
-4. **Confirmation toast for completed actions.** Even if the change was visible
-   in the UI, a "Saved" toast makes it explicit. Pak Hendra checks for the toast.
+What the operator needs to feel:
+1. **Instant acknowledgement** that the click registered (visible disable + spinner).
+2. **Confidence that the system de-duplicates** even if she does click again
+   (this is built backend-side via idempotency, but it must also be communicated
+   in microcopy when relevant: "Already processed — showing existing record").
+3. **Explicit success** when the action completes (specific toast, not generic "Done").
 
 ❌ BAD: button has no `disabled` state, fires the same POST 5 times in 800ms,
-   server creates 5 invoices with consecutive numbers.
+   server creates 5 invoices with consecutive numbers. Sri only learns this
+   when finance asks why three identical invoices were sent to PT Maxximum.
 
-✅ GOOD: button disables on the `mousedown` event. Server receives 5 requests
-   with the same idempotency key, returns the first result 5 times. UI shows
-   one invoice, one success toast.
+✅ GOOD: button disables on the `mousedown` event. Server is idempotent so the
+   5 requests collapse to one record. UI shows one invoice and one toast naming
+   the invoice number — Sri sees the result, stops clicking.
 
 ## Confirmation Fatigue
 

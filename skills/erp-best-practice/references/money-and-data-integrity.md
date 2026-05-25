@@ -81,52 +81,19 @@ to a mutable settings row.
 ## Idempotency: Financial Operations Must Not Duplicate
 
 Severity: **CRITICAL.** Any financial operation that can be called more than
-once (due to retry, double-click, network timeout) must be protected with an
-**idempotency key**. For the full pattern under concurrent load, webhook
-retries, and number-assignment races: [[concurrency]].
+once (retry, double-click, network timeout) must be protected with an
+**idempotency key**: the client generates a UUID before submitting, the server
+records the key with the result, and a repeat request returns the stored
+result without re-executing.
 
-Operations that require idempotency: payroll processing, journal commits,
-invoice creation, payment webhook handling, status updates that trigger
+Operations that require it: payroll processing, journal commits, invoice
+creation, payment webhook handling, and any status update that triggers
 financial side effects.
 
-Pattern:
-1. Client generates a UUID before submitting.
-2. Server checks if that key was already processed → return the same result,
-   don't re-execute.
-3. If not seen before → execute inside a transaction → save key + result
-   atomically.
-
-```
-// Pseudocode — stack-agnostic
-function processPayroll(idempotencyKey, params):
-    begin_transaction:
-        existing = idempotency_store.lookup(idempotencyKey, lock=true)
-        if existing:
-            return existing.response          // already done
-
-        result = do_process_payroll(params)
-
-        idempotency_store.insert({
-            key:        idempotencyKey,
-            endpoint:   'POST /payroll/process',
-            response:   result,
-            user_id:    current_user.id,
-            created_at: now_utc(),
-        })
-        return result
-    commit
-```
-
-**Stack notes for transactions:**
-- **Node.js (Knex, Prisma, TypeORM):** all expose `transaction(callback)`.
-- **Python (Django):** `transaction.atomic()` decorator/context manager.
-- **Python (SQLAlchemy):** `Session.begin()` context manager.
-- **Ruby on Rails:** `ActiveRecord::Base.transaction { ... }`.
-- **Java (Spring):** `@Transactional` on the service method.
-- **Go (database/sql):** `db.BeginTx()` + explicit `Commit`/`Rollback`. Use
-  `defer tx.Rollback()` so rollback fires on early return.
-- **C# (.NET / EF Core):** `using var tx = db.Database.BeginTransaction()`.
-- **PHP (Laravel):** `DB::transaction(function () { ... })`.
+Full implementation (pseudocode, key lifetime by caller, key-source selection,
+row-level lock vs unique-constraint variants, stack notes for `SELECT FOR
+UPDATE`): [[concurrency]] § Idempotency. Apply that pattern; this file owns
+the *which financial operations require it*, [[concurrency]] owns the *how*.
 
 ## Database Transactions: All or Nothing
 
@@ -155,57 +122,41 @@ Guard against silent failure modes:
 - **Nested transactions:** most DBs implement nested transactions as
   savepoints. Read your ORM's docs — silent partial commits are possible.
 
-## Audit Trail: Append-Only, Never Deleted
+**Stack notes — transaction syntax:**
+- **Node.js (Knex, Prisma, TypeORM):** `transaction(callback)`.
+- **Python (Django):** `transaction.atomic()` decorator / context manager.
+- **Python (SQLAlchemy):** `Session.begin()` context manager.
+- **Ruby on Rails:** `ActiveRecord::Base.transaction { ... }`.
+- **Java (Spring):** `@Transactional` on the service method.
+- **Go (`database/sql`):** `db.BeginTx()` + explicit `Commit`/`Rollback`. Use
+  `defer tx.Rollback()` so rollback fires on early return.
+- **C# / .NET (EF Core):** `using var tx = db.Database.BeginTransaction()`.
+- **PHP (Laravel):** `DB::transaction(function () { ... })`.
 
-Severity: **CRITICAL.** Every financial change must produce an audit record:
-- Who changed it (user ID + name snapshot — snapshot because users can be
-  renamed, reassigned, or deleted)
-- When (server timestamp, not client)
-- What changed (before and after values, not just the new value)
+## Audit Trail: Financial Mutation Rules
 
-The audit table is append-only. The application database role must have only
-`INSERT` permission on it — no `UPDATE`, no `DELETE`. Enforce at the database
-level (separate role / GRANT), not just in application code.
+Severity: **CRITICAL.** Every financial change must produce an audit record
+inside the **same database transaction** as the data change. If the
+transaction rolls back, the audit record must roll back too — silently
+losing audit on rollback is one of the most common failures in audit
+libraries that default to async writes.
 
-```
-// Pseudocode — inside the same transaction as the data change
-audit_event.insert({
-    user_id:            user.id,
-    user_name_snapshot: user.name,
-    user_role_snapshot: user.role,
-    action:             'UPDATE',
-    resource_type:      'payroll',
-    resource_id:        payroll.id,
-    resource_key:       payroll.number,   // human-readable for reports
-    before_state:       previous_values,
-    after_state:        new_values,
-    changed_fields:     diff_keys,
-    occurred_at:        now_utc(),        // server time, not client
-    correlation_id:     request.correlation_id,
-    idempotency_key:    request.idempotency_key,
-})
-```
+Financial-specific requirements (in addition to the general audit pattern
+in [[observability]] § Mutation History):
 
-The audit trail answers "who changed this and when?" — it does not guarantee
-the correctness of the data. That is the user's responsibility. The platform's
-responsibility is that the audit record itself is accurate and unmodifiable.
+- **Inside the same transaction as the data change.** Verify your audit
+  library writes synchronously — many default to async/out-of-transaction.
+- **Append-only at the database level.** Application role has `INSERT` only —
+  revoke `UPDATE` and `DELETE` via GRANT. Application code alone is not enough.
+- **User identity by snapshot, not foreign key.** Users get deactivated,
+  renamed, or reassigned. The audit must remain interpretable years later.
+- **Before AND after state.** "Status changed to Approved" without the
+  previous value is useless when reconstructing.
+- **Money values: never log to console or error tracker.** Audit table only.
 
-For correlation IDs, lineage, and operator-facing history panels:
-[[observability]].
-
-**Common audit-trail libraries by stack** (use one before writing your own):
-- **Node / TypeScript:** Prisma + a manual `audit_log` table; or `objection-db-errors`.
-- **Python (Django):** `django-simple-history`, `django-auditlog`.
-- **Python (SQLAlchemy):** `sqlalchemy-continuum`.
-- **Ruby on Rails:** `paper_trail`, `audited`.
-- **Java (Spring):** `Spring Data Envers` (Hibernate Envers).
-- **C# (.NET):** `Audit.NET`, EF Core change tracker.
-- **Go:** typically hand-rolled — keep the audit insert inside the same `Tx`.
-- **PHP (Laravel):** `spatie/laravel-activitylog`, `owen-it/laravel-auditing`.
-
-In all cases: verify the library writes inside your transaction. Some default
-to async / out-of-transaction writes, which silently lose audit records on
-transaction rollback.
+For the full audit event structure, ORM diff helpers, library options by
+stack, and operator-facing history panel pattern: [[observability]] §
+Mutation History.
 
 ## Double-Entry Balance: Debit Must Equal Credit
 

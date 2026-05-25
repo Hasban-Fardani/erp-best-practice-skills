@@ -1,5 +1,14 @@
 # Forms: Create, Edit, Multi-Step, Validation
 
+> **Scope.** Owns: form layout (single vs two-column), label placement,
+> required/optional marking, field grouping, validation flow, error-summary
+> pattern, submit-button rules, multi-step wizards, unsaved-changes warning,
+> edit-vs-create differences, tab order. **See also:** [[input-control]] for
+> which input type to use per field · [[navigation]] for modal/drawer/page
+> decision · [[exceptions-and-recovery]] § Browser Refresh for draft autosave
+> · [[money-and-data-integrity]] for rate-snapshot storage · [[concurrency]]
+> § Idempotency for double-submit protection.
+
 ## Layout
 
 **Default: single column.** Severity: MEDIUM. Two-column layouts cause Z-pattern
@@ -61,25 +70,23 @@ Placeholder: "DD/MM/YYYY"
 
 ## Tax & Dynamic Calculation Fields
 
-Never hardcode rates. Tax rates (PPN), discounts, and DP ratios must be configurable.
+Form UX rules for fields that depend on configurable rates (PPN, discount,
+BPJS, DP ratio):
 
-```
-// Pseudocode
-// Wrong — breaks when regulations change
-ppn = subtotal * 0.11
+- Show the rate that *will be applied* as a read-only field next to the
+  calculated amount: `PPN (11%)  Rp 440.000`. Operators must be able to
+  verify "yes, the right rate was used" without checking settings.
+- On edit of an existing document, show the rate **snapshotted at document
+  creation**, not the current live rate. Label it: `PPN at creation: 11%`.
+- Never let the form recalculate using a different rate than what was
+  stored on the document — this silently rewrites history.
+- If a rate field is editable (admin override for a specific document),
+  require a reason field and audit the override.
 
-// Better — from config, no deployment needed to update
-ppn = subtotal * config.ppn_rate
-
-// Best — from database, user-configurable per document or per period
-ppn = subtotal * (document.tax_rate ?? current_tax_rate())
-```
-
-Always store the rate at creation time — not a live reference.
-Historical invoices must preserve their original calculation even after rate changes.
-For BPJS rates and Indonesian tax specifics: see [[indonesia-compliance]].
-For money-as-integer storage pattern and rate calculation rules: see
-[[money-and-data-integrity]].
+Storage, calculation, and rate-snapshot enforcement belong to the backend —
+see [[money-and-data-integrity]] § Rates Must Come From the Database, Not
+Code for the pattern. For Indonesian-specific rate sources (PPN, PPh, BPJS
+caps): [[indonesia-compliance]].
 
 ## Validation
 
