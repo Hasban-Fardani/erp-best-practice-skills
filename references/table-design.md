@@ -90,10 +90,50 @@ TanStack Table, MUI DataGrid, Ant Design Table, Filament tables, etc.).
 
 ## Row Actions
 
-Show actions on hover only — permanently visible buttons on every row fill the table with noise.
+For this ERP family, primary row actions are always visible. Do not require
+horizontal scrolling, hover discovery, or opening a menu for the action the
+operator is expected to take most often. This is a **HIGH** usability rule for
+40+ operators and keyboard users.
 
-✓ Hover row → `Edit | View | Delete` appear at the right edge
-✗ 3 buttons on every row always → Sri can't scan the actual data
+Use compact icon buttons only when the icon has a stable meaning and provide a
+visible tooltip/title plus an accessible label. Use text buttons for ambiguous
+or high-consequence actions. Keep the action column sticky when the table is
+wide.
+
+Secondary actions may live in a dropdown, but the menu must:
+
+- remain inside the viewport or use a collision-aware placement;
+- open upward or into a portal when the row is near the table footer;
+- never be clipped by `overflow: hidden`, the table wrapper, or a sticky footer;
+- have a keyboard path and an explicit close path.
+
+The last visible row is a required test fixture. A screenshot with an open menu
+on the final row is not optional evidence.
+
+✓ Primary `Lihat` and `Edit` stay visible; `Arsipkan`, `Duplikat`, and `Lainnya`
+  can be secondary
+✗ Every action is hidden behind `Lainnya`, or a dropdown opens below the footer
+
+## Sorting Contract
+
+Default sorting is a business rule, not an accidental database order. Before
+building a data table, record:
+
+1. The primary recency field. Start with the newest relevant date descending,
+   not automatically `created_at`.
+2. All equivalent date fields that can represent recency in that domain
+   (`issued_at`, `updated_at`, `submitted_at`, `effective_at`, etc.) and the
+   precedence when more than one exists.
+3. A stable tie-breaker such as an immutable ID or document number so refreshes
+   do not reshuffle equal timestamps.
+4. Allowed user sorts: multi-column ordering, direction for every column, and
+   A–Z/Z–A for text fields.
+5. The URL/request representation and authorization allow-list for sortable
+   columns. Never accept a raw user-supplied SQL column.
+
+Minimum evidence for a new table: Pest cases for newest-first default, date
+precedence, stable ties, multi-column ordering, A–Z/Z–A text ordering, invalid
+sort rejection, and query-string persistence.
 
 For bulk operations: show bulk action bar only after at least one row is selected.
 Cursor and background must change on hover to signal the row is interactive.

@@ -1,7 +1,8 @@
 ---
 name: erp-best-practice
 description: >
-  Production-grade ERP reasoning system covering UX/UI, forms, tables, financial
+  Production-grade ERP reasoning system covering UX/UI, forms, tables, production
+  safety, AI accountability, and JavaScript delivery alongside financial
   integrity, concurrency, observability, exception handling, performance, network
   reality, mobile workflows, legacy migration, and Indonesian compliance (UU PDP,
   BPJS, NIK/NPWP, IDR). Use this skill when: designing or reviewing ERP screens,
@@ -10,14 +11,16 @@ description: >
   behavior, recoverability, race conditions, or audit trails; making tradeoff
   decisions between competing principles. Triggers on enterprise app UX, admin
   experience, internal tools, accounting workflows, payroll, invoicing,
-  approvals, or back-office software questions.
+  approvals, or back-office software questions. Treat every application as
+  production unless the user explicitly labels it a disposable sandbox.
 ---
 
 # ERP Best Practice
 
 A reasoning system for building, reviewing, and operating ERP systems that
 real Indonesian operators actually use. Optimized for operational throughput,
-financial correctness, and recoverability — not for visual impressiveness.
+financial correctness, recoverability, and safe change delivery — not for
+visual impressiveness.
 
 ## Core Philosophy
 
@@ -29,6 +32,8 @@ ERP systems are judged by:
 - Workflow continuity
 - Long-term maintainability
 - Operational stability
+- Safe production changes with an explicit evidence trail
+- Honest AI output that separates observed facts, inference, and unknowns
 
 Not by visual impressiveness or SaaS design trends. Every recommendation in this
 skill is filtered through that lens.
@@ -45,6 +50,78 @@ notes for major stacks (Node/TypeScript, Python/Django/SQLAlchemy, Ruby on
 Rails, Java/Spring, Go, C#/.NET, PHP/Laravel) where the idiom matters. Translate
 the pattern to whatever stack the project uses — when you have access to the
 codebase, read it first to match existing framework, ORM, and conventions.
+
+## Production Assumption and AI Accountability
+
+Default stance: the application is already in production and supports real
+operators for years. A local checkout is not permission to treat data, queues,
+cron, or deployment state as disposable. If the environment is unknown, mark
+it **UNKNOWN** and ask for the missing evidence before making a risky change.
+
+Every implementation report must separate:
+
+1. **Observed** — directly read from source, command output, test output, or a
+   browser trace.
+2. **Inferred** — a conclusion derived from observed evidence; state the chain.
+3. **Unknown** — not checked or not provable from the available evidence.
+
+Never claim a command was run, a test passed, a browser was checked, a file was
+read, or a deployment succeeded without the reproducible command and output.
+Screenshots are evidence of what was visible at one moment, not proof of server
+authorization, database integrity, network ownership, or production readiness.
+
+If an AI-generated change is not tested or inspected, say **NOT RUN**. If the
+requested result depends on unavailable credentials, external state, or a
+missing decision, say **BLOCKED** and request only that decision. Do not use
+confidence, flattery, or a plausible explanation to fill an evidence gap.
+
+## Production-Safe Command Policy
+
+Before any command that can mutate data, code, process state, or deployment
+state, identify the environment and show the exact target. In production,
+default to read-only diagnostics and generated artifacts for human review.
+
+Never execute these in production without explicit operator approval, a backup
+or rollback plan, and a maintenance/incident record:
+
+- `php artisan migrate:fresh`, `migrate:refresh`, `db:wipe`, `db:seed`, or an
+  unscoped destructive data command.
+- `php artisan tinker` that writes data, deletes records, changes permissions,
+  dispatches jobs, or invokes domain mutations.
+- `php artisan queue:flush`, `queue:restart`, `horizon:terminate`, or worker
+  restarts without confirming queue impact and deployment ownership.
+- `php artisan config:clear`, `cache:clear`, `route:clear`, `view:clear`, or
+  `optimize:clear` during traffic without a release plan and cache warm-up.
+- `composer update`, `composer remove`, `npm update`, `npm install` with
+  dependency range changes, or lockfile rewrites on a live host.
+- `git reset --hard`, `git clean -fd`, force pushes, direct production edits,
+  or commands that replace uncommitted work.
+- Applying Supervisor, crontab, systemd, Docker, Nginx, PHP-FPM, or firewall
+  changes directly when only a configuration artifact was requested.
+
+Safe default sequence: inspect → generate a dry-run/receipt → review target and
+blast radius → test in a production-like environment → deploy through the
+team's approved mechanism → verify health and business behavior → record the
+result. When a dangerous command appears necessary, provide it as **INFO ONLY**
+with its risk and ask the user to run or approve it; do not run it yourself.
+
+## UI and Delivery Rules for Laravel ERP
+
+For Blade + Bootstrap ERP screens:
+
+- Indonesian is the default interface language; use translation keys for new
+  user-facing copy and keep English as an explicit alternate locale.
+- A screen must support a readable `complete` mode and a denser `compact` mode;
+  density must not remove labels, status text, keyboard access, or primary row
+  actions.
+- Table primary actions stay visible in the row. If a secondary dropdown is
+  used, it must be collision-safe on the last visible row and must not be
+  clipped by a table footer or overflow container.
+- Default sorting is a business decision, never an incidental database order.
+  Document date precedence, stable tie-breakers, multi-column sorting, and
+  A–Z/Z–A text sorting; cover each with a Pest test.
+- Keep browser-local modal, toast, tab, collapse, and filter state local. Load
+  JavaScript libraries per capability/page where the bundler supports it.
 
 ## User Personas
 
@@ -100,6 +177,7 @@ in `references/review-modes.md` determine when to load additional files.
 | Severity classification: CRITICAL / HIGH / MEDIUM / PREFERENCE | `references/severity.md` |
 | Tradeoff doctrine and priority hierarchy | `references/tradeoffs.md` |
 | Mode selection (generation, critique, audit, review, analysis) | `references/review-modes.md` |
+| Production safety, AI accountability, command guardrails | `references/production-safety-and-ai.md` |
 
 ### UX / UI
 
