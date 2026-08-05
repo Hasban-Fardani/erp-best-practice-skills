@@ -40,6 +40,32 @@ Require one canonical item record and page containing:
 A screenshot only proves a visible moment. It does not prove authorization,
 mutation correctness, accessibility, or a valid source contract.
 
+## Visual catalog contract
+
+The registry homepage is a discovery surface, not a prose index. A preview card
+must render a synthetic but recognizable fixture of the component or block:
+buttons should look like buttons, a table should show rows, a form should show
+fields and state, and a loading item should show loading. A sentence such as
+“component for handling forms” is context, not a preview.
+
+Keep the fixture visible before the explanatory copy. A detail page may add
+purpose, use case, source, and test contract below the fixture, but it must not
+fall back to title-plus-description when the item is a visual component. For
+backend or test recipes, show a short real source/example excerpt instead of
+pretending a UI fixture exists.
+
+Benchmark inventory and internal discovery have different audiences. Store the
+full inventory and provenance for maintainers, but do not expose a benchmark
+matrix or competitor names in the normal office-facing catalog unless the user
+is explicitly auditing coverage. The visible catalog should show the internal
+component count and an honest readiness status; a count is never a claim that
+every item is source-owned.
+
+Use a visual grid for a large component inventory, one global search for title,
+purpose, tags, and backend context, and category facets rather than a second
+search bar. On mobile, collapse the grid to one column and keep the same fixture
+above the status and source link.
+
 ## Discovery and distribution
 
 Keep one global search for human discovery. Facets are part of that search, not
@@ -96,3 +122,14 @@ client identifiers, and unpublished business rules before indexing or preview.
 - An empty `breaking_changes` list is valid metadata. Validate it with
   `present|array`, not only `required|array`; a contract test caught this exact
   seed regression before the source plan could be trusted.
+- A registry preview was initially implemented as descriptive copy for some
+  items. Browser review found that the word “preview” was misleading; visual
+  items now require a rendered fixture, while backend/test items show a real
+  source excerpt. This distinction is part of the acceptance contract.
+- A homepage count originally described only source records even though the
+  product goal was a complete discoverable catalog. Keep inventory count and
+  source readiness as separate fields so “71 catalog items” cannot be read as
+  “71 production-ready items”.
+- A full benchmark matrix made the internal coverage page look like a research
+  report and confused office readers. Keep benchmark evidence in maintainer
+  documentation and make the everyday catalog visual and concise.
