@@ -23,6 +23,25 @@ Use explicit status values:
 Never convert a benchmark count into a maturity claim. A catalog with 68 names
 may still have only a small number of source-owned ERP patterns.
 
+## Catalog taxonomy is part of the user model
+
+Expose separate first-class scopes for `component`, `layout`, `block`, and
+`backend`/`test` items. Do not flatten them into one list and expect a badge or
+description to explain the difference. The scope answers a different question:
+
+- **Component** — one reusable UI primitive or field/control;
+- **Layout** — page chrome or structural shell such as header, drawer, footer,
+  hero, or stack;
+- **Block** — a composed ERP workflow slice such as a filtered table or a long
+  form section;
+- **Backend** — a server-side recipe, test recipe, or operational case without
+  pretending it is a visual component.
+
+The homepage should expose these scopes as visible catalog navigation. A
+component card may link to a detail page, but a layout or block must not be
+silently reclassified as a component merely because it has a source file.
+Source ownership is a second axis, not a replacement for taxonomy.
+
 ## Evidence contract for each source-owned item
 
 Require one canonical item record and page containing:
@@ -36,6 +55,18 @@ Require one canonical item record and page containing:
 - framework, adapter, version, provenance, compatibility, dependency, and
   bundle impact;
 - upgrade, migration, and rollback notes.
+
+The canonical item page starts with the real rendered fixture. Do not add a
+large “Preview” CTA to a page that is already the preview, and do not create
+tabs that only scroll to sections while looking like separate application
+states. Keep the documentation linear and let the source/test sections follow
+the fixture.
+
+If an item has more than one source layer, show each real file in a file list
+with its layer (`Frontend` or `Backend`), path, syntax-highlighted contents,
+and a copy action. “Source available” means files exist and still require
+review; “source complete” requires the declared test evidence to be verified.
+Never display a source count as if it were a source-complete count.
 
 A screenshot only proves a visible moment. It does not prove authorization,
 mutation correctness, accessibility, or a valid source contract.
@@ -78,6 +109,50 @@ stable fields `$schema`, `name`, `title`, `description`, `type`, `dependencies`,
 for purpose, use case, provenance, compatibility, and tests. Keep the endpoint
 behind internal access and treat it as source distribution, never as a public
 URL or a runtime import.
+
+## Dynamic authoring and MCP boundary
+
+The database/schema alone does not make a registry dynamic. A PHP seeder or
+benchmark config that must be edited for every item is a baseline importer, not
+an authoring system. The registry needs a draft/revision/evidence workflow that
+can be called by the web UI, an API, a command, and an internal MCP facade
+through the same application service.
+
+Minimum safe authoring flow:
+
+```text
+create draft → validate → render safe fixture → attach Pest/browser evidence
+→ request review → approve → publish revision → generate read-only install plan
+```
+
+MCP should be read-only by default. It may create or update a draft with an
+optimistic revision check, but it must not publish or overwrite a consuming
+project without explicit human approval, an auditable diff, and a receipt.
+Suggested tools are search, get item, get source, create draft, update draft,
+validate, attach evidence, request review, publish-after-approval, and install
+plan. If a meaning index is unavailable, return lexical fallback and say so.
+
+Do not execute arbitrary Blade supplied by AI or an author as a web preview.
+Use a whitelisted declarative fixture schema, a registered renderer, or escaped
+source display. This keeps manual authoring flexible without turning the
+private registry into an XSS/code-execution surface.
+
+## Interactive preview contract
+
+Classify every item as `static`, `browser-interactive`, or `server-boundary`.
+Visible controls must either work in the preview or be clearly non-actionable;
+a decorative button that does nothing is a broken contract. Browser-interactive
+fixtures must prove trigger/state transition, dismiss or reset, keyboard and
+ARIA behavior, loading/error/success copy, no unexpected network request, and
+no console error. Server-boundary fixtures may use synthetic data, but must
+clearly separate local simulation from authorization, query, transaction,
+mutation, and test behavior in the consuming project.
+
+For blocks, a single input is not enough evidence. A table block should show
+the workflow states relevant to its job: filters, pagination, loading,
+empty/error, status/action geometry, and the server boundary. A form block
+should show section navigation, error recovery, draft/conflict indication, and
+the dependency rule when those are part of its purpose.
 
 ## Safe source installation and upgrades
 
@@ -133,3 +208,31 @@ client identifiers, and unpublished business rules before indexing or preview.
 - A full benchmark matrix made the internal coverage page look like a research
   report and confused office readers. Keep benchmark evidence in maintainer
   documentation and make the everyday catalog visual and concise.
+- A source item was first absorbed into the component scope because its source
+  slug was reused as a mapping key. Explicitly exclude block-owned source from
+  component mapping and test component/layout/block/backend counts separately.
+- A detail page called a validation error summary “preview” even though it did
+  not render the input field. The fixture now renders the actual field, label,
+  invalid state, and helper/error copy; a prose error summary alone is not a
+  field preview.
+- A mobile browser check found that a long example path in a flex row expanded
+  the page to 424px at a 390px viewport. The source panel was not the cause;
+  the fix was `min-width: 0` on the example content and `overflow-wrap: anywhere`
+  for paths. Treat long paths, code, and labels as mobile layout fixtures.
+- A feature test reached the backend preview and exposed a missing namespace
+  separator (`IlluminateSupportStr`). The browser path had not covered that
+  catalog result. Keep direct feature coverage for each preview rendering type;
+  a visual smoke test alone is insufficient.
+- A preview can contain a real-looking `<button>`, `<input>`, or close control
+  while still being a static illustration. Treat every visible control as a
+  contract: either wire and test the state transition, or render it as clearly
+  non-actionable content. This prevents a “preview” page from teaching a false
+  interaction model.
+- An empty icon button exposed an incomplete Lucide import map. Maintain an
+  icon manifest and fail validation when a template requests an unregistered
+  icon; a visually blank action is a usability and accessibility defect, not a
+  cosmetic detail.
+- A large PHP seeder plus preview mapping was initially mistaken for dynamic
+  registry authoring. A database-backed read model is not enough: authors need
+  draft/revision/evidence services that can be used by the UI, command, API, and
+  MCP without editing application code for every new item.
