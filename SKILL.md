@@ -222,6 +222,7 @@ in `references/review-modes.md` determine when to load additional files.
 | Input type decisions: free text, dropdown, combobox, contextual help | `references/input-control.md` |
 | Live filter, searchable select, loading, alert/toast, compact mode | `references/filtering-and-feedback.md` |
 | Taste Skill yang diadaptasi untuk shell, table, form, registry preview | `references/erp-taste-profile.md` |
+| Registry coverage, source ownership, private distribution, AI evidence | `references/registry-catalog.md` |
 | Core ERP principles, do/don't, data integrity | `references/erp-principles.md` |
 
 ### Operational Engineering
