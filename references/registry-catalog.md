@@ -53,6 +53,24 @@ for purpose, use case, provenance, compatibility, and tests. Keep the endpoint
 behind internal access and treat it as source distribution, never as a public
 URL or a runtime import.
 
+## Safe source installation and upgrades
+
+Every published item must expose a read-only lifecycle plan before an installer
+is considered:
+
+- `strategy`: normally `copy-with-review`;
+- `review_required`: explicit boolean, defaulting to `true`;
+- `overwrite`: use `never` or another explicitly approved policy, never an
+  implicit overwrite;
+- file paths, sizes, and SHA-256 digests;
+- one source digest for the file set;
+- breaking changes, migration, dependency, and rollback notes.
+
+The plan is evidence for a human or agent to prepare and inspect a diff. It is
+not permission to write into a consuming project. A future installer must add
+dry-run, path/conflict checks, explicit approval, backup or reversible diff,
+fixture-project tests, and a receipt before it can mutate files.
+
 ## AI accountability
 
 An agent may say “ready” only when the item status and evidence support it. The
@@ -75,3 +93,6 @@ client identifiers, and unpublished business rules before indexing or preview.
 - Sass deprecation output from Bootstrap is a dependency maintenance warning,
   not evidence that the coverage implementation failed. Record it separately
   and do not hide it in a green build claim.
+- An empty `breaking_changes` list is valid metadata. Validate it with
+  `present|array`, not only `required|array`; a contract test caught this exact
+  seed regression before the source plan could be trusted.
