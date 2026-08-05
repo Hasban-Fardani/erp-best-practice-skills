@@ -246,6 +246,22 @@ For long forms (RAB, quotation with many items): auto-save to **draft** every 60
 Show: `"Draft saved: 13:24"`. Never auto-save to published/final state.
 Full draft storage strategy and offline considerations: [[offline-and-network]] § Autosave to Draft.
 
+### Draft Restore and Discard Contract
+
+Draft restore must be an explicit user decision. After a refresh, show a visible
+`Draft tersedia` prompt with `Restore` and `Discard` actions; never hydrate the
+form silently because the operator may already be looking at newer server data
+or may have started typing. If the form becomes dirty while the draft request is
+still pending, disable restore and keep discard available so new input cannot be
+overwritten accidentally.
+
+Discard is a server mutation even though it is not a business transaction. Send
+the scope and optimistic version, keep the prompt on a `409 Conflict`, and never
+report success when the response was not verified. A missing field during
+restore is not a reason to drop its value silently: ignore unknown fields and
+show a visible review warning. A draft is recoverable work, not a submit, and
+must not bypass authorization, validation, audit, idempotency, or branch scope.
+
 ## Tab Order & Conditional Fields
 
 Tab order must follow visual field order, not DOM rendering order.
