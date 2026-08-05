@@ -105,6 +105,20 @@ team's approved mechanism → verify health and business behavior → record the
 result. When a dangerous command appears necessary, provide it as **INFO ONLY**
 with its risk and ask the user to run or approve it; do not run it yourself.
 
+## Struktur Backend dan Quality Gate
+
+Baca `references/code-structure-and-quality.md` ketika mengubah backend Laravel.
+Setiap file PHP di `app/` maksimal 50 baris fisik; pecah berdasarkan tanggung
+jawab, bukan membuat abstraction berlapis untuk memindahkan satu baris. Urutan
+method adalah `public` → `protected` → `private`, dan inheritance yang dibuat
+aplikasi maksimal dua tingkat. Utamakan komposisi dengan boundary yang mudah
+dicari.
+
+Guard wajib dijalankan sebelum handoff. PHP Insights harus minimal 50 untuk
+quality, complexity, architecture, dan style; skor 80 atau lebih adalah target
+hijau, tetapi jangan mengorbankan keterbacaan untuk mengejarnya. `composer test`
+dan `composer quality` harus menyertakan output nyata, bukan klaim.
+
 ## UI and Delivery Rules for Laravel ERP
 
 For Blade + Bootstrap ERP screens:
@@ -117,6 +131,22 @@ For Blade + Bootstrap ERP screens:
 - Table primary actions stay visible in the row. If a secondary dropdown is
   used, it must be collision-safe on the last visible row and must not be
   clipped by a table footer or overflow container.
+- Live table filters use a 300–400 ms debounce, preserve every active filter in
+  the URL, reset only the page number, abort stale requests, and show a visible
+  active-filter summary. With JavaScript, prefer fetch + partial replacement +
+  `history.pushState`; retain a normal GET fallback without JavaScript.
+- Every filter request has `aria-busy`, disabled controls, a table loading
+  overlay that keeps old data as context, and a clear loading detail. Use an
+  inline summary for successful filtering; use toast/SweetAlert for request
+  feedback or notifications, not for every keystroke.
+- Native select is preferred for 2–3 fixed options. More than 3 or dynamic
+  options must be searchable. Tom Select is the default optional lazy capability
+  for this Bootstrap stack; Select2 is an explicit jQuery tradeoff. Livewire
+  adapters must account for `wire:ignore` and destroy/re-init lifecycle.
+- Compact mode reduces prose and spacing only. It never hides tags, status text,
+  labels, loading/error/recovery state, keyboard paths, or primary actions. A
+  controlled set of status/actions uses shared width and height tokens so rows
+  remain vertically aligned.
 - Default sorting is a business decision, never an incidental database order.
   Document date precedence, stable tie-breakers, multi-column sorting, and
   A–Z/Z–A text sorting; cover each with a Pest test.
@@ -188,12 +218,14 @@ in `references/review-modes.md` determine when to load additional files.
 | Forms: create, edit, multi-step, errors, validation | `references/forms.md` |
 | Modal, drawer, full page — when to use which | `references/navigation.md` |
 | Input type decisions: free text, dropdown, combobox, contextual help | `references/input-control.md` |
+| Live filter, searchable select, loading, alert/toast, compact mode | `references/filtering-and-feedback.md` |
 | Core ERP principles, do/don't, data integrity | `references/erp-principles.md` |
 
 ### Operational Engineering
 
 | Topic | File |
 |---|---|
+| Struktur backend, batas 50 baris, inheritance, PHP Insights | `references/code-structure-and-quality.md` |
 | Money as integer, transactions, audit trail, double-entry, rate snapshots | `references/money-and-data-integrity.md` |
 | Race conditions, idempotency, optimistic locking, webhook retries | `references/concurrency.md` |
 | Audit lineage, correlation IDs, replayability, reconciliation visibility | `references/observability.md` |
@@ -259,6 +291,7 @@ treated as authoritative for the same concept.
 | Modal anatomy (title, body, buttons, ESC/Enter, sizing) | `navigation.md` § Modal | `exceptions-and-recovery.md`, `human-factors.md` (defer) |
 | Confirmation philosophy (when to require, friction by severity) | `human-factors.md` § Confirmation Fatigue | `exceptions-and-recovery.md` (defers) |
 | Filter persistence (URL/session, checklist) | `erp-principles.md` § Don't reset filters | `table-design.md` (cites) |
+| Live filter/request feedback contract | `filtering-and-feedback.md` | `erp-principles.md`, `performance.md`, `table-design.md` |
 | Empty state — UI presentation | `table-design.md` § Empty State | `human-factors.md` (microcopy only) |
 | Empty state — microcopy | `human-factors.md` § Trust-Building Microcopy | `table-design.md` (cites) |
 | Error message microcopy | `human-factors.md` § Error Messages That Help | `erp-principles.md` (principle only) |
@@ -268,6 +301,7 @@ treated as authoritative for the same concept.
 | Retry logic — client (exponential backoff) | `offline-and-network.md` | `concurrency.md` (cites) |
 | Session expiry | `exceptions-and-recovery.md` § Session Expiration | `offline-and-network.md` (cites) |
 | PII handling (NIK, NPWP, BPJS, redaction) | `indonesia-compliance.md` | `observability.md` (never-log list cites) |
+| Backend file size, method order, inheritance, PHP Insights thresholds | `code-structure-and-quality.md` | `production-safety-and-ai.md` (evidence only) |
 | Severity classification (CRITICAL/HIGH/MEDIUM/PREFERENCE) | `severity.md` | (cited from all) |
 | Priority hierarchy (financial > legal > integrity > ...) | `tradeoffs.md` | (cited from all) |
 
