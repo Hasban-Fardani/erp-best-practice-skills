@@ -236,3 +236,26 @@ client identifiers, and unpublished business rules before indexing or preview.
   registry authoring. A database-backed read model is not enough: authors need
   draft/revision/evidence services that can be used by the UI, command, API, and
   MCP without editing application code for every new item.
+- A first browser probe used a fixed short wait for a lazy-loaded modal and
+  produced a false negative. Use a runtime readiness marker such as
+  `window.erpUi.modal` after `networkidle` before testing the interaction; keep
+  the original probe and corrected probe in the receipt so the evidence remains
+  auditable.
+- A browser-interactive fixture initially relied on an empty `aria-current`
+  attribute. Use an explicit `aria-current="true"` only for the active item and
+  remove the attribute otherwise; presence alone is not a reliable state value.
+- A feature assertion initially searched for a short class substring and
+  matched a legitimate data attribute. Assert the exact semantic marker when a
+  test is meant to prove absence; broad substring checks create false confidence.
+- A button-option CSS rule initially styled only `div` elements while the
+  accessible fixture correctly used `button` elements. Style by role/fixture
+  contract, not by the first element type used in the prototype.
+- The first catalog service grew to 325 lines because it mixed source loading,
+  item mapping, evidence status, and query presentation. Split only along those
+  named responsibilities: source assembly, item mapping, and source evidence;
+  keep benchmark labels and preview types in configuration so future authoring
+  can replace the data layer without rewriting the presenter.
+- A refactor test assumed a seeded source was complete because its preview was
+  visible; the actual contract correctly classified it as partial. Readiness is
+  evidence-driven, not inferred from visual availability, and tests should
+  allow only the explicitly permitted evidence states.
