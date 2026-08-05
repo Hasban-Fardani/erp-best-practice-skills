@@ -11,13 +11,24 @@ Kode ERP dirawat selama bertahun-tahun oleh senior, junior, dan agent AI.
 Aturan ini membatasi biaya pencarian dan mengurangi ruang bagi AI untuk
 mengklaim refactor sudah aman padahal belum dibuktikan.
 
-## Batas backend
+## Batas backend yang fleksibel tetapi dapat diaudit
 
-- Setiap file PHP di `app/` maksimal **50 baris fisik**.
-- Jika lebih, pecah berdasarkan satu tanggung jawab yang dapat diberi nama:
-  query, validasi, rendering output, adapter framework, atau service boundary.
-- Jangan memecah button sederhana ke banyak lapisan hanya demi mengejar angka.
-  File pemanggil tetap boleh menjadi façade tipis agar alur utama mudah dibaca.
+- Profil default `balanced` mengizinkan maksimal **100 baris fisik** per file
+  PHP di `app/`. Ini mengurangi pencarian lintas file untuk kode yang masih
+  satu boundary dan menjawab masalah abstraction yang tidak produktif.
+- Profil `strict` mengembalikan batas 50 baris untuk kode yang kecil,
+  berisiko tinggi, atau memang lebih mudah dirawat jika sangat terpisah.
+- Profil `exception` tetap berbasis 100 baris. Batas 101–200 hanya berlaku
+  untuk file yang tercantum di `tools/quality/quality-exceptions.php` dengan
+  `reason`, `owner`, `expires_at`, dan `receipt`. Tidak ada `--max-lines` bebas
+  yang dapat dipakai untuk melewati review.
+- Jalankan `php tools/quality/backend-guard.php --profile=strict|balanced|exception`.
+  Tanpa argumen, guard memakai `balanced`; CI boleh menetapkan
+  `ERP_QUALITY_PROFILE` secara eksplisit.
+- Jika lebih dari profil yang dipilih, pecah berdasarkan satu tanggung jawab
+  yang dapat diberi nama: query, validasi, rendering output, adapter framework,
+  atau service boundary. Jangan memecah button sederhana ke banyak lapisan
+  hanya demi mengejar angka.
 - `tools/quality/` adalah infrastructure untuk memeriksa aplikasi, bukan
   runtime backend. Ia boleh memiliki struktur berbeda, tetapi tidak boleh
   menjadi tempat menyembunyikan pelanggaran di `app/`.
@@ -53,7 +64,8 @@ Kontrak proyek:
 
 - `quality`, `complexity`, `architecture`, dan `style` minimal **50**;
 - kompleksitas hijau (`>=80`) adalah target, bukan alasan untuk membuat
-  abstraction berlebihan;
+  abstraction berlebihan; skor kuning yang stabil boleh diterima bila
+  boundary dan test-nya jelas;
 - tidak boleh menyembunyikan pelanggaran aplikasi dengan mengecualikan
   `app/` dari scan;
 - `tools/quality/` boleh dikecualikan dari PHP Insights karena ia diperiksa
@@ -77,7 +89,8 @@ php artisan insights --no-interaction
 
 Setiap agent yang mengubah backend harus melaporkan:
 
-- file yang melewati 50 baris sebelum dan sesudah perubahan;
+- profil guard yang dipakai, file yang melewati batas profil sebelum dan
+  sesudah perubahan, serta alasan dan receipt jika ada exception;
 - hasil guard dan PHP Insights yang benar-benar dijalankan;
 - hasil Pest untuk behavior yang berubah;
 - bagian yang belum diperiksa sebagai `NOT RUN` atau `UNKNOWN`;

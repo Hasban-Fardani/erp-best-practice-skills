@@ -108,11 +108,13 @@ with its risk and ask the user to run or approve it; do not run it yourself.
 ## Struktur Backend dan Quality Gate
 
 Baca `references/code-structure-and-quality.md` ketika mengubah backend Laravel.
-Setiap file PHP di `app/` maksimal 50 baris fisik; pecah berdasarkan tanggung
-jawab, bukan membuat abstraction berlapis untuk memindahkan satu baris. Urutan
-method adalah `public` → `protected` → `private`, dan inheritance yang dibuat
-aplikasi maksimal dua tingkat. Utamakan komposisi dengan boundary yang mudah
-dicari.
+Profil default guard adalah `balanced` dengan batas 100 baris fisik di `app/`.
+Gunakan `strict` untuk boundary kecil/berisiko tinggi. Batas 101–200 hanya
+boleh melalui profil `exception` dan manifest ber-owner, expiry, alasan, serta
+receipt. Pecah berdasarkan tanggung jawab, bukan membuat abstraction berlapis
+untuk memindahkan satu baris. Urutan method tetap `public` → `protected` →
+`private`, dan inheritance aplikasi maksimal dua tingkat. Utamakan komposisi
+dengan boundary yang mudah dicari.
 
 Guard wajib dijalankan sebelum handoff. PHP Insights harus minimal 50 untuk
 quality, complexity, architecture, dan style; skor 80 atau lebih adalah target
@@ -219,13 +221,14 @@ in `references/review-modes.md` determine when to load additional files.
 | Modal, drawer, full page — when to use which | `references/navigation.md` |
 | Input type decisions: free text, dropdown, combobox, contextual help | `references/input-control.md` |
 | Live filter, searchable select, loading, alert/toast, compact mode | `references/filtering-and-feedback.md` |
+| Taste Skill yang diadaptasi untuk shell, table, form, registry preview | `references/erp-taste-profile.md` |
 | Core ERP principles, do/don't, data integrity | `references/erp-principles.md` |
 
 ### Operational Engineering
 
 | Topic | File |
 |---|---|
-| Struktur backend, batas 50 baris, inheritance, PHP Insights | `references/code-structure-and-quality.md` |
+| Struktur backend, profil 50/100/exception, inheritance, PHP Insights | `references/code-structure-and-quality.md` |
 | Money as integer, transactions, audit trail, double-entry, rate snapshots | `references/money-and-data-integrity.md` |
 | Race conditions, idempotency, optimistic locking, webhook retries | `references/concurrency.md` |
 | Audit lineage, correlation IDs, replayability, reconciliation visibility | `references/observability.md` |
@@ -302,6 +305,7 @@ treated as authoritative for the same concept.
 | Session expiry | `exceptions-and-recovery.md` § Session Expiration | `offline-and-network.md` (cites) |
 | PII handling (NIK, NPWP, BPJS, redaction) | `indonesia-compliance.md` | `observability.md` (never-log list cites) |
 | Backend file size, method order, inheritance, PHP Insights thresholds | `code-structure-and-quality.md` | `production-safety-and-ai.md` (evidence only) |
+| Taste rules yang benar-benar cocok untuk ERP | `erp-taste-profile.md` | Taste Skill source (adapted, not copied) |
 | Severity classification (CRITICAL/HIGH/MEDIUM/PREFERENCE) | `severity.md` | (cited from all) |
 | Priority hierarchy (financial > legal > integrity > ...) | `tradeoffs.md` | (cited from all) |
 

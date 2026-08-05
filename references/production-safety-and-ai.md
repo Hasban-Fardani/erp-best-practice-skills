@@ -111,3 +111,21 @@ reason, target, blast radius, rollback, and approval needed. Do not run it.
 - What remains unknown or not run?
 - Can a junior developer locate the source, server boundary, and test without
   following more than two indirections?
+
+## Verification Failure and Improvisation Log
+
+A failed verification attempt is evidence about the tool boundary, not proof
+that the implementation is wrong or right. Record the exact failed command,
+the observed error, the minimal correction, and the successful rerun.
+
+- Check `--help` or the project script before adding flags from memory; command
+  names that look alike do not guarantee the same options.
+- Do not call Laravel helpers such as `base_path()` while a test file is being
+  loaded before the application container boots; use a deterministic path for
+  tool fixtures or boot the proper test case.
+- Use the repository's or workspace's bundled runtime when available. If a
+  validator lacks a package, install it into an isolated temporary location or
+  report `NOT RUN`; never weaken validation silently.
+- When a quality command reports pre-existing failures, run a targeted check on
+  changed files, preserve the full result as `FAIL`, and do not relabel it as
+  green without a baseline receipt.
